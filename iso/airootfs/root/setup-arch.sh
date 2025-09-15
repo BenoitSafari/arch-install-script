@@ -45,8 +45,6 @@ if [[ -z "$USERNAME" || -z "$USER_PASS" || -z "$EFI_DISK" ]]; then
 fi
 
 echo "Starting Arch Linux installation..."
-exit 1
-
 echo "Installing base system..."
 mkdir -p "$MOUNT_POINT/boot"
 mount "$EFI_DISK" "$MOUNT_POINT/boot"
@@ -57,11 +55,15 @@ if [ -n "$WIFI_SSID" ] && [ -n "$WIFI_PASSWORD" ]; then
     nmcli device wifi connect "$WIFI_SSID" password "$WIFI_PASSWORD"
 fi
 
-pacstrap "$MOUNT_POINT" base linux linux-firmware networkmanager grub efibootmgr
+pacstrap "$MOUNT_POINT" \
+    base linux linux-lts linux-firmware networkmanager grub efibootmgr \
+    nano vim sudo btrfs-progs sof-firmware alsa-firmware intel-ucode amd-ucode \
+    bash zsh git wget curl openssh rsync openvpn \
+
 genfstab -U "$MOUNT_POINT" > "$MOUNT_POINT/etc/fstab"
 
 cp set-*.sh "$MOUNT_POINT/"
-chmod +x "$MOUNT_POINT/set-*.sh"
+chmod +x "$MOUNT_POINT"/set-*.sh
 
 arch-chroot "$MOUNT_POINT" /bin/bash -c \
     "/set-base-config.sh '$HOSTNAME' '$TIMEZONE' '$LOCALE' '$LANG'"

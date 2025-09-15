@@ -13,6 +13,9 @@ echo "$LOCALE" >> /etc/locale.gen
 echo "LANG=$LANG" > /etc/locale.conf
 locale-gen
 
+echo "Enabling multilib repository in pacman.conf..."
+sed -i '/^\[multilib\]/,/Include/s/^#//' /etc/pacman.conf
+
 echo "$HOSTNAME" > /etc/hostname
 cat > /etc/hosts <<EOF
 127.0.0.1   localhost
@@ -27,5 +30,13 @@ cat > /etc/hosts <<EOF
 EOF
 
 systemctl enable NetworkManager
+
+echo "Installing and configuring GRUB..."
 grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=GRUB
 grub-mkconfig -o /boot/grub/grub.cfg
+
+echo "Installing yay..."
+cd /tmp
+git clone https://aur.archlinux.org/yay.git
+cd yay
+makepkg -si --noconfirm

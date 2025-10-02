@@ -2,9 +2,9 @@
 Follow the provided instruction to use this script.
 
 ## Create the installation media
-Install `archiso` using the following command:
+Install `archiso` and it's dependencies using the following command:
 ```
-sudo pacman -S archiso
+sudo pacman -S archiso arch-install-scripts dosfstools libisoburn mtools squashfs-tools syslinux edk2-ovmf qemu grub erofs-utils
 ```
 
 Build the iso file

@@ -12,9 +12,4 @@ rm -rf "$YAY_TMP_DIR"
 
 # Install packages from AUR
 yay -S --noconfirm \
-    brave-bin google-chrome \
-
-# Set up dotfiles
-git clone --bare --recursive https://github.com/RichGuk/dotfiles.git $HOME/.dotfiles
-alias dots='/usr/bin/git --git-dir=$HOME/.dotfiles --work-tree=$HOME'
-exit
+    brave-bin google-chrome walker \

@@ -94,9 +94,6 @@ umount -R /mnt
 
 mount -o compress=zstd,subvol=@ "$partroot" /mnt
 mkdir -p /mnt/{boot/home,.snapshots}
-if [[ $shouldFormatEfi -eq 1 ]]; then
-    mkdir -p /mnt/boot
-fi
 
 mount -o compress=zstd,subvol=@home "$partroot" /mnt/home
 mount -o compress=zstd,subvol=@snapshots "$partroot" /mnt/.snapshots
@@ -133,20 +130,15 @@ reflector --country $country --protocol https --latest 5 --sort rate --save /etc
 echo "[ARCH-INSTALL-SCRIPT] Entering chroot to configure the system..."
 
 arch-chroot /mnt /bin/bash <<EOF
-echo "[ARCH-INSTALL-SCRIPT] Configuring locale, timezone, and hostname."
+echo "[ARCH-INSTALL-SCRIPT] Configuring locale and hostname."
 ln -sf /usr/share/zoneinfo/Europe/Paris /etc/localtime
 hwclock --systohc
 
 echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen
 echo "fr_FR.UTF-8 UTF-8" >> /etc/locale.gen
 locale-gen
-echo "LANG=en_US.UTF-8" > /etc/locale.conf
-echo "KEYMAP=fr-latin9" > /etc/vconsole.conf
-echo "LC_TIME=fr_FR.UTF-8" >> /etc/locale.conf
-echo "LC_PAPER=fr_FR.UTF-8" >> /etc/locale.conf
-echo "LC_MEASUREMENT=fr_FR.UTF-8" >> /etc/locale.conf
 
-echo "arch" >> /etc/hostname
+echo "arch" > /etc/hostname
 echo "127.0.0.1 localhost" >> /etc/hosts
 echo "::1 localhost" >> /etc/hosts
 echo "127.0.1.1 arch.localdomain arch" >> /etc/hosts
@@ -156,27 +148,51 @@ done
 
 echo "[ARCH-INSTALL-SCRIPT] Installing base packages."
 pacman -Syu --noconfirm \
-git base-devel acpid btrfs-progs iwd llvm networkmanager snapper snap-pac grub-btrfs os-prober efibootmgr \
+git base-devel pciutils acpid btrfs-progs iwd llvm networkmanager snapper snap-pac grub-btrfs os-prober efibootmgr \
 nss-mdns pacman-contrib ufw unzip p7zip ripgrep plocate cifs-utils exfatprogs gvfs-mtp gvfs-smb \
 ffmpeg poppler iputils fontconfig jq wireless-regdb fzf pipewire-pulse wireplumber bluez
 
 echo "[ARCH-INSTALL-SCRIPT] Installing terminal and utilities."
-pacman -Syu \
+pacman -Syu --noconfirm \
 kitty fastfetch zsh btop yazi ffmpegthumbnailer imv man tldr nano
 
 echo "[ARCH-INSTALL-SCRIPT] Installing printer support."
-pacman -Syu \
+pacman -Syu --noconfirm \
 system-config-printer cups cups-browsed cups-filters
 
 echo "[ARCH-INSTALL-SCRIPT] Installing fonts."
-pacman -Syu \
-noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra ttf-bitstream-vera \ 
+pacman -Syu --noconfirm \
+noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra ttf-bitstream-vera \
 ttf-cascadia-mono-nerd ttf-fira-mono ttf-firacode-nerd ttf-liberation \
 ttf-opensans ttf-roboto woff2-font-awesome ttf-jetbrains-mono-nerd
 
 echo "[ARCH-INSTALL-SCRIPT] Installing web browsers and multimedia applications."
-pacman -Syu \
+pacman -Syu --noconfirm \
 chromium firefox vlc discord podman podman-desktop qbittorrent
+
+echo "[ARCH-INSTALL-SCRIPT] Installing GNOME Desktop Environment."
+pacman -Syu --noconfirm \
+gnome gnome-extra gdm gnome-tweaks extension-manager gnome-shell-extensions gnome-browser-connector papirus-icon-theme gnome-themes-extra
+
+echo "[ARCH-INSTALL-SCRIPT] Setting up default GNOME fonts and theme."
+
+sudo -u $username dbus-launch gsettings set org.gnome.desktop.interface font-name 'JetBrainsMono Nerd Font Semi-Bold 11'
+sudo -u $username dbus-launch gsettings set org.gnome.desktop.interface document-font-name 'JetBrainsMono Nerd Font Propo 12'
+sudo -u $username dbus-launch gsettings set org.gnome.desktop.interface monospace-font-name 'JetBrainsMono Nerd Font Mono 11'
+sudo -u $username dbus-launch gsettings set org.gnome.desktop.wm.preferences titlebar-font 'JetBrainsMono Nerd Font Bold 11'
+sudo -u $username dbus-launch gsettings set org.gnome.desktop.interface font-antialiasing 'rgba'
+sudo -u $username dbus-launch gsettings set org.gnome.desktop.interface font-hinting 'slight'
+sudo -u $username dbus-launch gsettings set org.gnome.desktop.interface icon-theme "Papirus-Dark"
+sudo -u $username dbus-launch gsettings set org.gnome.desktop.interface color-scheme "prefer-dark"
+
+echo "[ARCH-INSTALL-SCRIPT] Installing detected graphics drivers."
+if lspci | grep -qi nvidia; then
+    pacman -Syu --noconfirm nvidia nvidia-utils nvidia-settings
+elif lspci | grep -qi "amd\|ati"; then
+    pacman -Syu --noconfirm xf86-video-amdgpu vulkan-radeon
+elif lspci | grep -qi intel; then
+    pacman -Syu --noconfirm xf86-video-intel vulkan-intel
+fi
 
 echo "[ARCH-INSTALL-SCRIPT] Creating user $username."
 useradd -m -G wheel,users -s /usr/bin/zsh "$username"
@@ -193,15 +209,23 @@ systemctl enable cups
 systemctl enable reflector.timer
 systemctl enable fstrim.timer
 systemctl enable acpid
+systemctl enable gdm
+
+echo "[ARCH-INSTALL-SCRIPT] Setting up French keyboard for GNOME, GDM and console."
+localectl set-locale LANG=en_US.UTF-8 LC_TIME=fr_FR.UTF-8 LC_PAPER=fr_FR.UTF-8 LC_MEASUREMENT=fr_FR.UTF-8
+localectl set-keymap fr-latin9
+localectl set-x11-keymap fr pc105 latin9
 
 echo "[ARCH-INSTALL-SCRIPT] Configuring snapshots."
-umount /.snapshots
+umount /.snapshots 2>/dev/null || true
 rm -rf /.snapshots
 snapper --no-dbus -c root create-config /
 rm -rf /.snapshots
 mkdir /.snapshots
 
-mount -a
+root_dev=$(findmnt -n -o SOURCE /)
+mount -o compress=zstd,subvol=@snapshots "$root_dev" /.snapshots
+
 chmod 750 /.snapshots
 chown :wheel /.snapshots
 snapper --no-dbus -c root set-config "TIMELINE_LIMIT_HOURLY=0" "TIMELINE_LIMIT_DAILY=7" "TIMELINE_LIMIT_WEEKLY=0" "TIMELINE_LIMIT_MONTHLY=0" "TIMELINE_LIMIT_YEARLY=0"

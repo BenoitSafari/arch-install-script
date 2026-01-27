@@ -14,13 +14,11 @@ iwctl --passphrase [password] station wlan0 connect [network]
 ping -c4 www.archlinux.org
 ```
 
-#### Setup SSH and connect from another computer *(optional)*
-**ENSURE THIS IS DISABLED ONCE THE SYSTEM IS INSTALLED!**
+#### Start SSH and connect from another computer *(optional)*
 ```
 passwd
 ip addr
 systemctl start sshd
-systemctl disable sshd
 ```
 Use the output to connect from another machine using ssh.
 ```
@@ -28,4 +26,10 @@ scp ./install-arch.sh root@[ip]:/root/
 ssh root@[ip]
 ```
 
-Execute the script.
+#### Clone the repository and execute the script
+
+```
+git clone https://github.com/BenoitSafari/arch-install-script.git
+chmod +x install-arch.sh
+bash install-arch.sh
+```

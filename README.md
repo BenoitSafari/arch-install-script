@@ -6,7 +6,7 @@ Follow the provided instruction to use this script.
 ### Prepare installation
 #### Setup keyboard and network
 ```
-loadkeys fr-latin9 #
+loadkeys fr-latin9
 ```
 *Skip this part if connected with LAN*
 ```
@@ -22,7 +22,7 @@ systemctl start sshd
 ```
 Use the output to connect from another machine using ssh.
 ```
-scp ./install-arch.sh root@[ip]:/root/
+scp ./arch-install.sh root@[ip]:/root/
 ssh root@[ip]
 ```
 
@@ -30,6 +30,9 @@ ssh root@[ip]
 
 ```
 git clone https://github.com/BenoitSafari/arch-install-script.git
-chmod +x install-arch.sh
-bash install-arch.sh
+cd ./arch-install-script
+chmod +x arch-i*.sh
+bash arch-install.sh
+# Or, with arguments
+bash arch-install.sh --part-efi=/dev/nvme0n1p1 --part-root=/dev/nvme0n1p6 --part-swap=/dev/nvme0n1p5 --format-efi=0
 ```

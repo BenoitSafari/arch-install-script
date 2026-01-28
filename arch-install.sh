@@ -1,0 +1,69 @@
+#!/bin/bash
+
+country="France"
+
+timedatectl set-ntp true
+
+echo "###############################################################"
+echo "# [ARCH-INSTALL-SCRIPT] Setup your partitions."
+echo "###############################################################"
+echo "This script is for French users and will configure the system locale accordingly."
+source ./arch-install-partition.sh "$@"
+
+username=""
+userpass=""
+
+while [[ -z "$username" ]]; do
+    read -r -p "Please enter the username to create: " username
+    read -r -s -p "Please enter the password for $username: " userpass
+    echo ""
+    read -r -p "You entered username: $username. Is this correct? (y/n): " confirm
+    if [[ "$confirm" != "y" ]]; then
+        username=""
+        userpass=""
+    fi
+done
+
+echo "###############################################################"
+echo "# [ARCH-INSTALL-SCRIPT] Arch Linux base installation will begin now."
+echo "###############################################################"
+pacstrap /mnt base base-devel linux linux-firmware intel-ucode amd-ucode sudo rsync reflector wget util-linux shadow git
+genfstab -U /mnt >> /mnt/etc/fstab
+timedatectl set-ntp true
+reflector --country $country --protocol https --latest 5 --sort rate --save /etc/pacman.d/mirrorlist
+
+echo "###############################################################"
+echo "# [ARCH-INSTALL-SCRIPT] Entering chroot to configure the system..."
+echo "###############################################################"
+
+script_target=/mnt/root/arch-install-chroot.sh
+cp ./arch-install-chroot.sh $script_target
+chmod +x $script_target
+arch-chroot /mnt /root/arch-install-chroot.sh "$username" "$userpass"
+rm -f $script_target
+
+echo "###############################################################"
+echo "# [ARCH-INSTALL-SCRIPT] Copy configuration files."
+echo "###############################################################"
+echo "Importing configuration files for user $username."
+
+cp ./.zshrc /mnt/home/"$username"/.zshrc
+user_cfg=/mnt/home/"$username"/.config
+mkdir -p "$user_cfg"/fastfetch/
+mkdir -p "$user_cfg"/kitty/
+cp ./.config/fastfetch/config.jsonc "$user_cfg"/fastfetch/config.jsonc
+cp ./.config/kitty/kitty.conf "$user_cfg"/kitty/kitty.conf
+
+arch-chroot /mnt chown -R "$username":"$username" /home/"$username"
+
+echo ""
+echo ""
+echo "###############################################################"
+echo "# [ARCH-INSTALL-SCRIPT] Installation complete."
+echo "###############################################################"
+echo "Press any key to unmount partitions and reboot into your new Arch Linux system."
+
+read -r
+umount -R /mnt
+swapoff "$partswap"
+reboot

@@ -13,6 +13,6 @@ plugins=(
 source $ZSH/oh-my-zsh.sh
 
 alias ls='ls -lah'
-alias explore='yazi'
+alias explore='nautilus'
 
 [[ -z "$TERMINAL_EMULATOR" ]] && fastfetch

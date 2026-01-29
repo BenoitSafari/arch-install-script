@@ -7,7 +7,7 @@ timedatectl set-ntp true
 echo "###############################################################"
 echo "# [ARCH-INSTALL-SCRIPT] Setup your partitions."
 echo "###############################################################"
-echo "This script is for French users and will configure the system locale accordingly."
+echo "This script is for French users and will configure the system locale and keyboardy accordingly."
 source ./arch-install-partition.sh "$@"
 
 username=""

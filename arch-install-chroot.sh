@@ -41,15 +41,18 @@ echo "###############################################################"
 echo "# [ARCH-INSTALL-SCRIPT] Installing base packages."
 echo "###############################################################"
 pacman -Syu --noconfirm \
-git pciutils acpid btrfs-progs iwd llvm networkmanager snapper snap-pac grub-btrfs os-prober efibootmgr \
-nss-mdns pacman-contrib ufw unzip p7zip ripgrep plocate cifs-utils exfatprogs gvfs-mtp gvfs-smb \
+git base-devel pciutils acpid btrfs-progs iwd llvm networkmanager snapper snap-pac grub-btrfs os-prober efibootmgr \
+nss-mdns pacman-contrib ufw unzip p7zip ripgrep plocate cifs-utils exfatprogs gvfs-mtp gvfs-smb rust \
 ffmpeg poppler iputils fontconfig jq wireless-regdb fzf pipewire-pulse wireplumber bluez go \
-kitty fastfetch yazi ffmpegthumbnailer imv man-db tldr nano wget \
+kitty fastfetch ffmpegthumbnailer imv man-db tldr nano wget \
 noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra ttf-bitstream-vera \
 ttf-cascadia-mono-nerd ttf-fira-mono ttf-firacode-nerd ttf-liberation \
 ttf-opensans ttf-roboto woff2-font-awesome ttf-jetbrains-mono-nerd papirus-icon-theme \
 gnome gdm gnome-tweaks gnome-shell-extensions gnome-browser-connector xdg-desktop-portal-gnome xdg-desktop-portal-gtk \
 system-config-printer cups cups-browsed cups-filters
+
+# Gnome bloatwares removal
+sudo pacman -Rs --noconfirm gnome-contacts gnome-weather gnome-characters gnome-music gnome-maps gnome-tour gnome-console epiphany gnome-software
 
 echo "###############################################################"
 echo "# [ARCH-INSTALL-SCRIPT] Installing detected graphics drivers."
@@ -85,7 +88,6 @@ sudo -u $username dbus-launch gsettings set org.gnome.desktop.interface font-ant
 sudo -u $username dbus-launch gsettings set org.gnome.desktop.interface font-hinting 'slight'
 sudo -u $username dbus-launch gsettings set org.gnome.desktop.interface icon-theme "Papirus-Dark"
 sudo -u $username dbus-launch gsettings set org.gnome.desktop.interface color-scheme "prefer-dark"
-sudo -u $username dbus-launch gsettings set org.gnome.desktop.input-sources sources "[('xkb', 'fr')]"
 sudo -u $username dbus-launch gsettings set org.gnome.desktop.wm.preferences button-layout 'appmenu:minimize,maximize,close'
 sudo -u $username dbus-launch gsettings set org.gnome.desktop.wm.preferences action-double-click-titlebar 'toggle-maximize'
 sudo -u $username dbus-launch gsettings set org.gnome.nautilus.list-view default-zoom-level 'small'
@@ -94,6 +96,29 @@ sudo -u $username dbus-launch gsettings set org.gnome.nautilus.preferences migra
 sudo -u $username dbus-launch gsettings set org.gnome.mutter center-new-windows true
 sudo -u $username dbus-launch gsettings set org.gnome.desktop.interface show-battery-percentage true
 sudo -u $username dbus-launch gsettings set org.gnome.desktop.interface cursor-size 24
+sudo -u $username dbus-launch gsettings set org.gnome.desktop.input-sources sources "[('xkb', 'fr')]"
+
+# GDM Keyboard layout
+mkdir -p /etc/X11/xorg.conf.d
+cat <<EOF > /etc/X11/xorg.conf.d/00-keyboard.conf
+Section "InputClass"
+        Identifier "system-keyboard"
+        MatchIsKeyboard "on"
+        Option "XkbLayout" "fr"
+EndSection
+EOF
+mkdir -p /etc/dconf/profile
+cat <<EOF > /etc/dconf/profile/gdm
+user-db:user
+system-db:gdm
+file-db:/usr/share/gdm/greeter-dconf-defaults
+EOF
+mkdir -p /etc/dconf/db/gdm.d
+cat <<EOF > /etc/dconf/db/gdm.d/01-keyboard
+[org/gnome/desktop/input-sources]
+sources=[('xkb', 'fr')]
+EOF
+dconf update
 
 # Power settings
 sudo -u $username dbus-launch gsettings set org.gnome.settings-daemon.plugins.power power-button-action 'suspend'

@@ -2,8 +2,11 @@
 
 user_apps_aur=(
     brave-bin
-    jetbrains-toolbox
+    p7zip-gui
     pinta
+    jetbrains-toolbox
+    vscodium-bin
+    vscodium-marketplace
 )
 user_apps=(
     qbittorrent 

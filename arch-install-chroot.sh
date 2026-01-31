@@ -49,7 +49,7 @@ noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra ttf-bitstream-vera \
 ttf-cascadia-mono-nerd ttf-fira-mono ttf-firacode-nerd ttf-liberation \
 ttf-opensans ttf-roboto woff2-font-awesome ttf-jetbrains-mono-nerd papirus-icon-theme \
 gnome gdm gnome-shell-extensions gnome-browser-connector xdg-desktop-portal-gnome xdg-desktop-portal-gtk \
-system-config-printer cups cups-browsed cups-filters
+system-config-printer cups cups-browsed cups-filters networkmanager-openvpn
 
 # Gnome bloatwares removal
 sudo pacman -Rs --noconfirm gnome-contacts gnome-weather gnome-characters gnome-music gnome-maps gnome-tour gnome-console epiphany gnome-software

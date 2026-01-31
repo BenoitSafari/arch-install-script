@@ -48,7 +48,7 @@ kitty fastfetch ffmpegthumbnailer imv man-db tldr nano wget \
 noto-fonts noto-fonts-cjk noto-fonts-emoji noto-fonts-extra ttf-bitstream-vera \
 ttf-cascadia-mono-nerd ttf-fira-mono ttf-firacode-nerd ttf-liberation \
 ttf-opensans ttf-roboto woff2-font-awesome ttf-jetbrains-mono-nerd papirus-icon-theme \
-gnome gdm gnome-tweaks gnome-shell-extensions gnome-browser-connector xdg-desktop-portal-gnome xdg-desktop-portal-gtk \
+gnome gdm gnome-shell-extensions gnome-browser-connector xdg-desktop-portal-gnome xdg-desktop-portal-gtk \
 system-config-printer cups cups-browsed cups-filters
 
 # Gnome bloatwares removal
@@ -80,10 +80,6 @@ pacman -Syu --noconfirm \
 chromium firefox vlc
 
 # Theme and font settings
-sudo -u $username dbus-launch gsettings set org.gnome.desktop.interface font-name 'JetBrainsMono Nerd Font Semi-Bold 11'
-sudo -u $username dbus-launch gsettings set org.gnome.desktop.interface document-font-name 'JetBrainsMono Nerd Font Propo 12'
-sudo -u $username dbus-launch gsettings set org.gnome.desktop.interface monospace-font-name 'JetBrainsMono Nerd Font Mono 11'
-sudo -u $username dbus-launch gsettings set org.gnome.desktop.wm.preferences titlebar-font 'JetBrainsMono Nerd Font Bold 11'
 sudo -u $username dbus-launch gsettings set org.gnome.desktop.interface font-antialiasing 'rgba'
 sudo -u $username dbus-launch gsettings set org.gnome.desktop.interface font-hinting 'slight'
 sudo -u $username dbus-launch gsettings set org.gnome.desktop.interface icon-theme "Papirus-Dark"
